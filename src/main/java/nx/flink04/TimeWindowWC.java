@@ -16,6 +16,7 @@ public class TimeWindowWC {
 
         DataStreamSource<String> source = env.socketTextStream("127.0.0.1", 9999);
 
+
         SingleOutputStreamOperator<Tuple2<String, Integer>> res = source.flatMap(new FlatMapFunction<String, Tuple2<String, Integer>>() {
             @Override
             public void flatMap(String line, Collector<Tuple2<String, Integer>> collector) throws Exception {
