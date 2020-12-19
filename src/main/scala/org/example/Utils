@@ -1,0 +1,7 @@
+  def columnNamesRename(df: DataFrame): DataFrame = {
+    val oldColumns = df.columns.toSeq
+    val renamedColumns: Seq[Column] = oldColumns.map(name => {
+      col(name).as(name + "_temp")
+    })
+    df.select(renamedColumns: _*)
+  }
