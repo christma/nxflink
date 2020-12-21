@@ -37,7 +37,7 @@ public class TopNPage {
                 .assignTimestampsAndWatermarks(new ZeyeHotPageEventTimeExtractor()) // 设置水位
                 .keyBy(logEvent -> logEvent.url) // 根据url 分组
                 .timeWindow(Time.seconds(10), Time.seconds(5)) // 每5秒统计 10秒的数据  滑动窗口
-                .aggregate(new ZeyePageCountAgg(), new ZeyePageWindowResult())
+                .aggregate(new ZeyePageCountAgg(), new ZeyePageWindowResult()) // 聚合 ==== sum
                 .keyBy(urlView -> urlView.WindowTime)
                 .process(new ZeyeTopNPage(3))
                 .print();
