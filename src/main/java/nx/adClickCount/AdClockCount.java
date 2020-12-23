@@ -3,6 +3,7 @@ package nx.adClickCount;
 import nx.utils.Utils;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.streaming.api.TimeCharacteristic;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.AssignerWithPeriodicWatermarks;
 import org.apache.flink.streaming.api.watermark.Watermark;
@@ -15,9 +16,9 @@ public class AdClockCount {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
-        env.readTextFile(Utils.CLICK_LOG_PATH)
+        SingleOutputStreamOperator<AdClickEvent> adEventStream = env.readTextFile(Utils.CLICK_LOG_PATH)
                 .map(new parseAdClickLog())
-                .assignTimestampsAndWatermarks(new AdClickEventTimeExtractor())
+                .assignTimestampsAndWatermarks(new AdClickEventTimeExtractor());
 
         env.execute("AdClockCount");
     }
@@ -105,15 +106,22 @@ public class AdClockCount {
     }
 
     private static class AdClickEventTimeExtractor implements AssignerWithPeriodicWatermarks<AdClickEvent> {
+        private long currentMaxEventTime = 0L;
+        private long maxOutOfOrderness = 10L;
+
         @Nullable
         @Override
         public Watermark getCurrentWatermark() {
-            return null;
+            return new Watermark((currentMaxEventTime - maxOutOfOrderness) * 1000);
         }
 
         @Override
         public long extractTimestamp(AdClickEvent adClickEvent, long l) {
-            return 0;
+            Long timestamp = adClickEvent.timestamp * 1000;
+
+            currentMaxEventTime = Math.max(currentMaxEventTime, adClickEvent.timestamp);
+
+            return timestamp;
         }
     }
 }
