@@ -55,7 +55,7 @@ public class UVCount {
         }
     }
 
-    private static class UserBehavior {
+    public static class UserBehavior {
         private Long userId;
         private Long productId;
         private Long categoryId;
